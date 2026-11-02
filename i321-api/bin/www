@@ -1,0 +1,166 @@
+#!/usr/bin/env node
+
+/**
+ * File: bin/www
+ *
+ * Description:
+ * Main entry point of the Express application.
+ *
+ * Purpose:
+ * - Load environment variables.
+ * - Import the Express application.
+ * - Configure the server port.
+ * - Create and start the HTTP server.
+ * - Handle server errors and listening events.
+ */
+
+// Load environment variables from the .env file.
+// This makes variables such as process.env.PORT available.
+require('dotenv').config();
+
+/**
+ * ==============================
+ * 1. MODULE DEPENDENCIES
+ * ==============================
+ */
+
+// Import the Express application configured in app.js
+var app = require('../app');
+
+// Import Debug to display server messages during development
+var debug = require('debug')('i321-api:server');
+
+// Import the Node.js HTTP module to create an HTTP server
+var http = require('http');
+
+
+/**
+ * ==============================
+ * 2. PORT CONFIGURATION
+ * ==============================
+ */
+
+// Get the port from the environment variables.
+// If PORT is not defined, use port 3000 by default.
+var port = normalizePort(process.env.PORT || '3000');
+
+// Store the port number in the Express application.
+// It can be accessed later using app.get('port').
+app.set('port', port);
+
+
+/**
+ * ==============================
+ * 3. HTTP SERVER CREATION
+ * ==============================
+ */
+
+// Create an HTTP server and attach the Express application to it.
+// The server will handle incoming HTTP requests using Express.
+var server = http.createServer(app);
+
+
+/**
+ * ==============================
+ * 4. START THE SERVER
+ * ==============================
+ */
+
+// Start listening for incoming HTTP requests on the configured port.
+// The server listens on all available network interfaces.
+server.listen(port);
+
+// Listen for server errors (for example, if the port is already in use).
+server.on('error', onError);
+
+// Execute onListening() when the server starts successfully.
+server.on('listening', onListening);
+
+
+/**
+ * ==============================
+ * 5. PORT NORMALIZATION
+ * ==============================
+ */
+
+// Convert the port value into a valid number, string or false.
+// This allows the server to accept either a port number or a named pipe.
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // If the value is not a number, treat it as a named pipe.
+    return val;
+  }
+
+  if (port >= 0) {
+    // Return the port number if it is valid.
+    return port;
+  }
+
+  // Return false if the port value is invalid.
+  return false;
+}
+
+
+/**
+ * ==============================
+ * 6. SERVER ERROR HANDLING
+ * ==============================
+ */
+
+// This function is called if the HTTP server encounters an error.
+function onError(error) {
+
+  // Only handle errors related to starting the server.
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  // Identify whether the server is using a port or a named pipe.
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // Handle specific server errors with appropriate messages.
+  switch (error.code) {
+
+    case 'EACCES':
+      // The application does not have permission to use this port.
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+
+    case 'EADDRINUSE':
+      // The selected port is already being used by another application.
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+
+    default:
+      // Throw any other unexpected error.
+      throw error;
+  }
+}
+
+
+/**
+ * ==============================
+ * 7. SERVER LISTENING EVENT
+ * ==============================
+ */
+
+// This function is called when the server starts successfully.
+function onListening() {
+
+  // Get information about the server address and port.
+  var addr = server.address();
+
+  // Identify whether the server is listening on a pipe or a port.
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+
+  // Display a message confirming that the server is running.
+  console.log('Listening on ' + bind);
+}

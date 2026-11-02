@@ -1,0 +1,9 @@
+
+### Test 1: API welcome message
+GET http://localhost:3000
+
+### Test 2: Retrieve users
+GET http://localhost:3000/api/users
+
+### Test 3: Undefined route (404)
+GET http://localhost:3000/users
